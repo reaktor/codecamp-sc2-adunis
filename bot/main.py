@@ -14,11 +14,8 @@ class MyBot(sc2.BotAI):
     def __init__(self):
         self.army_spread = None
         self.attacking_army = None
-<<<<<<< HEAD
         self.warpgate_started = False
-=======
         self.gathering_completed = False
->>>>>>> Separate gathering logic
 
     @property
     def nexus_count(self):
