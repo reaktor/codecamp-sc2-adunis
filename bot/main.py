@@ -192,8 +192,9 @@ class MyBot(sc2.BotAI):
             await self.build(NEXUS, near=location)
 
     async def attack(self):
-        for unit self.units(DARKTEMPLAR):
+        for unit in self.units(DARKTEMPLAR):
             await self.do(unit.attack(self.enemy_start_locations[0]))
+
         if self.units(ZEALOT).amount > 30:
             for unit in self.units(ZEALOT) | self.units(STALKER) | self.units(DARKTEMPLAR):
                 await self.do(unit.attack(self.enemy_start_locations[0]))
