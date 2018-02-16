@@ -12,6 +12,7 @@ class MyBot(sc2.BotAI):
     def __init__(self):
         self.army_spread = 4
         self.attacking_army = None
+        self.warpgate_started = False
 
     @property
     def nexus_count(self):
@@ -30,10 +31,28 @@ class MyBot(sc2.BotAI):
             await self.build_pylons()
         if self.nexus_count < 2:
             await self.build_expansion()
+        await self.build_warpgate_tech()
         await self.build_army()
         await self.distribute_workers()
         await self.build_economy()
         await self.attack_enemy()
+
+    async def build_warpgate_tech(self):
+        need_ccore = not self.units(CYBERNETICSCORE).ready.exists and not self.already_pending(CYBERNETICSCORE) 
+        ccore_reqs = self.units(PYLON).ready.exists and self.units(GATEWAY).ready.exists
+        if need_ccore and ccore_reqs and self.can_afford(CYBERNETICSCORE):
+            nexus = self.units(NEXUS).first
+            await self.build(CYBERNETICSCORE, nexus, max_distance=20) 
+
+        ccore = self.units(CYBERNETICSCORE).ready
+        if ccore.exists and self.can_afford(RESEARCH_WARPGATE) and not self.warpgate_started:
+            c = self.units(CYBERNETICSCORE).ready.first
+            await self.do(c(RESEARCH_WARPGATE))
+        
+        for gateway in self.units(GATEWAY).ready:
+            abilities = await self.get_available_abilities(gateway)
+            if AbilityId.MORPH_WARPGATE in abilities and self.can_afford(AbilityId.MORPH_WARPGATE):
+                await self.do(gateway(MORPH_WARPGATE))
 
     async def build_probes(self):
         for nexus in self.units(NEXUS).ready.noqueue:
