@@ -42,10 +42,11 @@ class MyBot(sc2.BotAI):
         await self.distribute_workers()
         await self.build_economy()
         await self.attack()
-        # if not self.units(FORGE).exists:
-        #     await self.build_forge()
-        # else:
-        #     await self.build_cannons()
+
+        if not self.units(FORGE).exists:
+            await self.build_forge()
+        else:
+            await self.build_cannons()
 
     async def build_warpgate_tech(self):
         ccore_reqs = self.units(PYLON).ready.exists and self.units(GATEWAY).ready.exists
@@ -75,7 +76,7 @@ class MyBot(sc2.BotAI):
         enemy = self.enemy_start_locations[0]
         forward_pylon = self.units(PYLON).closest_to(enemy)
         if self.minerals > 500:
-            self.build(PHOTONCANNON, near=forward_pylon)
+            await self.build(PHOTONCANNON, near=forward_pylon)
 
     async def build_probes(self):
         for nexus in self.units(NEXUS).ready.noqueue:
