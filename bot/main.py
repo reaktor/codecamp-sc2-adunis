@@ -38,17 +38,17 @@ class MyBot(sc2.BotAI):
         await self.attack_enemy()
 
     async def build_warpgate_tech(self):
-        need_ccore = not self.units(CYBERNETICSCORE).ready.exists and not self.already_pending(CYBERNETICSCORE) 
+        need_ccore = not self.units(CYBERNETICSCORE).ready.exists and not self.already_pending(CYBERNETICSCORE)
         ccore_reqs = self.units(PYLON).ready.exists and self.units(GATEWAY).ready.exists
         if need_ccore and ccore_reqs and self.can_afford(CYBERNETICSCORE):
             nexus = self.units(NEXUS).first
-            await self.build(CYBERNETICSCORE, nexus, max_distance=20) 
+            await self.build(CYBERNETICSCORE, nexus, max_distance=20)
 
         ccore = self.units(CYBERNETICSCORE).ready
         if ccore.exists and self.can_afford(RESEARCH_WARPGATE) and not self.warpgate_started:
             c = self.units(CYBERNETICSCORE).ready.first
             await self.do(c(RESEARCH_WARPGATE))
-        
+
         for gateway in self.units(GATEWAY).ready:
             abilities = await self.get_available_abilities(gateway)
             if AbilityId.MORPH_WARPGATE in abilities and self.can_afford(AbilityId.MORPH_WARPGATE):
@@ -70,8 +70,24 @@ class MyBot(sc2.BotAI):
             await self.build(GATEWAY, nexus, max_distance=50)
 
     async def build_economy(self):
+        if not self.units(ASSIMILATOR).exists and not self.already_pending(ASSIMILATOR) and self.can_afford(ASSIMILATOR):
+            nexus = self.units(NEXUS).first
+            await self.build_assimilator(nexus)
         if self.units(GATEWAY).amount < 4 and not self.already_pending(GATEWAY):
             await self.build_gateway()
+
+    async def build_assimilator(self, nexus):
+        vgs = self.state.vespene_geyser.closer_than(20.0, nexus)
+        for vg in vgs:
+            if not self.can_afford(ASSIMILATOR):
+                break
+
+            worker = self.select_build_worker(vg.position)
+            if worker is None:
+                break
+
+            if not self.units(ASSIMILATOR).closer_than(1.0, vg).exists:
+                await self.do(worker.build(ASSIMILATOR, vg))
 
     async def build_army(self):
         if self.units(NEXUS).amount < 2:
