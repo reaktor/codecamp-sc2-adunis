@@ -49,8 +49,9 @@ class MyBot(sc2.BotAI):
 
         ccore = self.units(CYBERNETICSCORE).ready
         if ccore.exists and self.can_afford(RESEARCH_WARPGATE) and not self.warpgate_started:
-            c = self.units(CYBERNETICSCORE).ready.first
+            c = ccore.first
             await self.do(c(RESEARCH_WARPGATE))
+            self.warpgate_started = True
 
         for gateway in self.units(GATEWAY).ready:
             abilities = await self.get_available_abilities(gateway)
@@ -103,6 +104,29 @@ class MyBot(sc2.BotAI):
         for gateway in self.units(GATEWAY).ready.noqueue:
             if self.can_afford(ZEALOT):
                 await self.do(gateway.train(ZEALOT))
+
+        for warpgate in self.units(WARPGATE).ready.noqueue:
+            if not self.units(PYLON).ready.exists:
+                pass
+
+            output = self.units(PYLON).ready.first
+            abilities = await self.get_available_abilities(warpgate)
+            # all the units have the same cooldown anyway so let's just look at ZEALOT
+            if AbilityId.WARPGATETRAIN_ZEALOT in abilities:
+                placement = await self.find_warp_pylon(AbilityId.WARPGATETRAIN_ZEALOT)
+                if placement is None:
+                    #return ActionResult.CantFindPlacementLocation
+                    print("can't place")
+                    break
+                await self.do(warpgate.warp_in(ZEALOT, placement))
+
+    async def find_warp_pylon(self, ability):
+        for pylon in self.units(PYLON).ready:
+            placement = await self.find_placement(AbilityId.WARPGATETRAIN_ZEALOT, pylon.position.to2, placement_step=1)
+            if placement is None:
+                continue
+            else:
+                return placement
 
     async def build_expansion(self):
         if self.can_afford(NEXUS):
