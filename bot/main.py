@@ -96,12 +96,12 @@ class MyBot(sc2.BotAI):
     async def build_gateway(self):
         nexus = self.units(NEXUS).first
         if self.can_afford(GATEWAY):
-            await self.build(GATEWAY, nexus, max_distance=50)
+            await self.build(GATEWAY, nexus, max_distance=20)
 
     async def build_dark_shrine(self):
         nexus = self.units(NEXUS).first
         if self.can_afford(DARKSHRINE):
-            await self.build(DARKSHRINE, nexus, max_distance=50)
+            await self.build(DARKSHRINE, nexus, max_distance=20)
             self.only_gassless_units = False
         else:
             self.only_gassless_units = True
@@ -109,7 +109,7 @@ class MyBot(sc2.BotAI):
     async def build_twilight_council(self):
         nexus = self.units(NEXUS).first
         if self.can_afford(TWILIGHTCOUNCIL):
-            await self.build(TWILIGHTCOUNCIL, nexus, max_distance=50)
+            await self.build(TWILIGHTCOUNCIL, nexus, max_distance=20)
             self.only_gassless_units = False
         else:
             self.only_gassless_units = True
