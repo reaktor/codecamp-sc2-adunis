@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import json
 
 from sc2 import run_game, maps, Race, Difficulty
