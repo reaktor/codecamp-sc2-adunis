@@ -30,25 +30,27 @@ class MyBot(sc2.BotAI):
     async def on_step(self, iteration):
         if iteration == 0:
             await self.chat_send(f"Name: {self.NAME}")
-        if self.units(PROBE).amount < 16 * self.nexus_count:
-            await self.build_probes()
-        if self.supply_left <= 2 * self.production_building_count and not self.already_pending(PYLON):
-            await self.build_pylons()
-        if self.nexus_count < 2:
-            await self.build_expansion()
-        if not self.warpgate_started:
-            await self.build_warpgate_tech()
-        await self.warpgates()
-        await self.build_economy()
-        await self.build_army()
-        await self.distribute_workers()
-        await self.attack()
+        if self.nexus_count > 0:
+            if self.units(PROBE).amount < 16 * self.nexus_count:
+                await self.build_probes()
+            if self.supply_left <= 2 * self.production_building_count and not self.already_pending(PYLON):
+                await self.build_pylons()
+            if self.nexus_count < 2:
+                await self.build_expansion()
+            if not self.warpgate_started:
+                await self.build_warpgate_tech()
+            await self.warpgates()
+            await self.build_economy()
+            await self.build_army()
+            await self.distribute_workers()
+            await self.attack()
 
-        if not self.units(FORGE).exists:
-            await self.build_forge()
+            if not self.units(FORGE).exists:
+                await self.build_forge()
+            else:
+                await self.build_cannons()
         else:
-            await self.build_cannons()
-
+            await self.chat_send('gg no re')
     async def build_warpgate_tech(self):
         ccore_reqs = self.units(PYLON).ready.exists and self.units(GATEWAY).ready.exists and not self.already_pending(CYBERNETICSCORE)
         if ccore_reqs and self.can_afford(CYBERNETICSCORE):
