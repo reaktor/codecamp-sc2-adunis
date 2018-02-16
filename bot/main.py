@@ -37,5 +37,5 @@ class MyBot(sc2.BotAI):
 
     async def build_army(self):
         for gateway in self.units(UnitTypeId.GATEWAY):
-            if self.can_afford(UnitTypeId.ZEALOT):
+            if self.can_afford(UnitTypeId.ZEALOT) and gateway.noqueue:
                 await self.do(gateway.train(UnitTypeId.ZEALOT))
