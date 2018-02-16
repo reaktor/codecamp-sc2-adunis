@@ -9,6 +9,10 @@ class MyBot(sc2.BotAI):
     with open(Path(__file__).parent / "../botinfo.json") as f:
         NAME = json.load(f)["name"]
 
+    def __init__(self):
+        self.army_spread = 4
+        self.attacking_army = None
+
     @property
     def nexus_count(self):
         return self.units(UnitTypeId.NEXUS).amount
@@ -58,5 +62,19 @@ class MyBot(sc2.BotAI):
     async def attack_enemy(self):
         wanted_army_size = 30
         if self.units(UnitTypeId.ZEALOT).amount > wanted_army_size:
-            for zealot in self.units(UnitTypeId.ZEALOT):
-                await self.do(zealot.attack(self.enemy_start_locations[0]))
+            if not self.attacking_army:
+                self.attacking_army = self.units(UnitTypeId.ZEALOT).take(wanted_army_size)
+            if self.army_spread < 30:
+                await self.chat_send('Attacking.')
+                for zealot in self.attacking_army:
+                    await self.do(zealot.attack(self.enemy_start_locations[0]))
+                self.attacking_army = None
+            else:
+                spread_sum = 0
+                for i, zealot in enumerate(self.attacking_army):
+                    if i == 0:
+                        continue
+                    spread_sum += zealot.distance_to(self.attacking_army[i-1])
+                self.army_spread = spread_sum / wanted_army_size
+                await self.do(zealot.move(self.enemy_start_locations[0].towards(self.game_info.map_center, 20)))
+
