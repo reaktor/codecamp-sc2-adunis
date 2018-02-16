@@ -9,10 +9,14 @@ class MyBot(sc2.BotAI):
     with open(Path(__file__).parent / "../botinfo.json") as f:
         NAME = json.load(f)["name"]
 
+    @property
+    def nexus_count(self):
+        return self.units(UnitTypeId.NEXUS).amount
+
     async def on_step(self, iteration):
         if iteration == 0:
             await self.chat_send(f"Name: {self.NAME}")
-        if self.units(UnitTypeId.PROBE).amount < 21:
+        if self.units(UnitTypeId.PROBE).amount < 16 * self.nexus_count:
             await self.build_probes()
         if self.supply_left <= 2 and not self.already_pending(UnitTypeId.PYLON):
             await self.build_pylons()
