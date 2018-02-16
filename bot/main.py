@@ -40,6 +40,8 @@ class MyBot(sc2.BotAI):
             await self.build(UnitTypeId.GATEWAY, nexus, max_distance=50)
 
     async def build_army(self):
+        if self.units(UnitTypeId.NEXUS).amount < 2:
+            pass
         for gateway in self.units(UnitTypeId.GATEWAY):
             if self.can_afford(UnitTypeId.ZEALOT) and gateway.noqueue:
                 await self.do(gateway.train(UnitTypeId.ZEALOT))
