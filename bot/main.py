@@ -39,6 +39,7 @@ class MyBot(sc2.BotAI):
         await self.build_army()
         await self.distribute_workers()
         await self.build_economy()
+        await self.attack()
 
     async def build_warpgate_tech(self):
         need_ccore = not self.units(CYBERNETICSCORE).ready.exists and not self.already_pending(CYBERNETICSCORE)
@@ -142,3 +143,8 @@ class MyBot(sc2.BotAI):
     async def gather_to(self, army, point):
         for unit in army:
             await self.do(unit.move(point))
+
+    async def attack(self):
+        if self.units(ZEALOT).amount > 30:
+            for unit in self.units(ZEALOT):
+                await self.do(unit.move(self.enemy_start_locations[0]))
