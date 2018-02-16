@@ -54,6 +54,11 @@ class MyBot(sc2.BotAI):
             if AbilityId.MORPH_WARPGATE in abilities and self.can_afford(AbilityId.MORPH_WARPGATE):
                 await self.do(gateway(MORPH_WARPGATE))
 
+    async def build_forge(self):
+        if not self.units(FORGE).exists and self.can_afford(FORGE):
+            pylons = self.units(PYLON).ready
+            await self.build(FORGE, near=pylons.closest_to(nexus))
+
     async def build_probes(self):
         for nexus in self.units(NEXUS).ready.noqueue:
             if self.can_afford(PROBE):
