@@ -15,44 +15,47 @@ class MyBot(sc2.BotAI):
 
     @property
     def nexus_count(self):
-        return self.units(UnitTypeId.NEXUS).amount
+        return self.units(NEXUS).amount
 
     async def on_step(self, iteration):
         if iteration == 0:
             await self.chat_send(f"Name: {self.NAME}")
-        if self.units(UnitTypeId.PROBE).amount < 16 * self.nexus_count:
+        if self.units(PROBE).amount < 16 * self.nexus_count:
             await self.build_probes()
-        if self.supply_left <= 2 and not self.already_pending(UnitTypeId.PYLON):
+        if self.supply_left <= 2 and not self.already_pending(PYLON):
             await self.build_pylons()
-        if self.units(UnitTypeId.GATEWAY).amount < 1 and not self.already_pending(UnitTypeId.GATEWAY):
-            await self.build_gateway()
         if self.nexus_count < 2:
             await self.build_expansion()
         await self.build_army()
         await self.distribute_workers()
+        await self.build_economy()
         await self.attack_enemy()
 
     async def build_probes(self):
-        for nexus in self.units(UnitTypeId.NEXUS).ready.noqueue:
-            if self.can_afford(UnitTypeId.PROBE):
-                await self.do(nexus.train(UnitTypeId.PROBE))
+        for nexus in self.units(NEXUS).ready.noqueue:
+            if self.can_afford(PROBE):
+                await self.do(nexus.train(PROBE))
 
     async def build_pylons(self):
-        nexus = self.units(UnitTypeId.NEXUS).first
-        if self.can_afford(UnitTypeId.PYLON):
+        nexus = self.units(NEXUS).first
+        if self.can_afford(PYLON):
             await self.build(UnitTypeId.PYLON, nexus.position.towards(self.game_info.map_center, 10))
 
     async def build_gateway(self):
-        nexus = self.units(UnitTypeId.NEXUS).first
-        if self.can_afford(UnitTypeId.GATEWAY):
-            await self.build(UnitTypeId.GATEWAY, nexus, max_distance=50)
+        nexus = self.units(NEXUS).first
+        if self.can_afford(GATEWAY):
+            await self.build(GATEWAY, nexus, max_distance=50)
+
+    async def build_economy(self):
+        if self.units(GATEWAY).amount < 4 and not self.already_pending(GATEWAY):
+            await self.build_gateway()
 
     async def build_army(self):
-        if self.units(UnitTypeId.NEXUS).amount < 2:
+        if self.units(NEXUS).amount < 2:
             pass
-        for gateway in self.units(UnitTypeId.GATEWAY):
-            if self.can_afford(UnitTypeId.ZEALOT) and gateway.noqueue:
-                await self.do(gateway.train(UnitTypeId.ZEALOT))
+        for gateway in self.units(GATEWAY).ready.noqueue:
+            if self.can_afford(ZEALOT):
+                await self.do(gateway.train(ZEALOT))
 
     async def build_expansion(self):
         if self.can_afford(NEXUS):
