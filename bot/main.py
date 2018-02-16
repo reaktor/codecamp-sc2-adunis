@@ -120,9 +120,8 @@ class MyBot(sc2.BotAI):
                     break
                 await self.do(warpgate.warp_in(preferred["unit"], placement))
 
-        nexus = self.units(NEXUS).first
-        for gateway in self.units(GATEWAY):
-            units_at_base = self.units(ZEALOT).closer_than(10, gateway)
+        for b in self.units(GATEWAY) | self.units(WARPGATE):
+            units_at_base = self.units(ZEALOT).idle.closer_than(10, b)  | self.units(STALKER).idle.closer_than(10, b)
             for unit in units_at_base:
                 await self.do(unit.move(self.staging_point))
 
