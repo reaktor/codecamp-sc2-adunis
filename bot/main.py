@@ -17,12 +17,16 @@ class MyBot(sc2.BotAI):
     def nexus_count(self):
         return self.units(NEXUS).amount
 
+    @property
+    def gateway_count(self):
+        return self.units(GATEWAY).amount
+
     async def on_step(self, iteration):
         if iteration == 0:
             await self.chat_send(f"Name: {self.NAME}")
         if self.units(PROBE).amount < 16 * self.nexus_count:
             await self.build_probes()
-        if self.supply_left <= 2 and not self.already_pending(PYLON):
+        if self.supply_left <= 2 * self.gateway_count and not self.already_pending(PYLON):
             await self.build_pylons()
         if self.nexus_count < 2:
             await self.build_expansion()
