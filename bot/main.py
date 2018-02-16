@@ -22,6 +22,8 @@ class MyBot(sc2.BotAI):
             await self.build_pylons()
         if self.units(UnitTypeId.GATEWAY).amount < 1 and not self.already_pending(UnitTypeId.GATEWAY):
             await self.build_gateway()
+        if self.nexus_count < 2:
+            await self.build_expansion()
         await self.build_army()
 
     async def build_probes(self):
@@ -45,3 +47,8 @@ class MyBot(sc2.BotAI):
         for gateway in self.units(UnitTypeId.GATEWAY):
             if self.can_afford(UnitTypeId.ZEALOT) and gateway.noqueue:
                 await self.do(gateway.train(UnitTypeId.ZEALOT))
+
+    async def build_expansion(self):
+        if self.can_afford(NEXUS):
+            location = await self.get_next_expansion()
+            await self.build(NEXUS, near=location)
