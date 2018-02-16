@@ -13,9 +13,9 @@ class MyBot(sc2.BotAI):
 
     def __init__(self):
         self.army_spread = None
-        self.attacking_army = None
         self.warpgate_started = False
         self.gathering_completed = False
+        self.armies = []
 
     @property
     def nexus_count(self):
@@ -147,9 +147,7 @@ class MyBot(sc2.BotAI):
 
         await self.chat_send(f'Gathering. Spread: {self.army_spread}')
 
-        random_unit = random.choice(army)
-        await self.chat_send(f'Gathering. Spread: {self.army_spread < len(army)* 2}, {random_unit.position.distance_to(point) < len(army) * 2}, {random_unit.position.distance_to(point)}')
-        if self.army_spread < len(army) * 2 and random_unit.position.distance_to(point) < len(army) * 2:
+        if self.army_spread < len(army) * 2:
             self.gathering_completed = True
 
     async def attack_to(self, army, point):
@@ -158,12 +156,13 @@ class MyBot(sc2.BotAI):
             await self.do(unit.attack(point))
 
     async def attack_enemy(self):
-        wanted_army_size = 10
-        if self.units(UnitTypeId.ZEALOT).amount > wanted_army_size:
-            if not self.attacking_army:
-                self.attacking_army = self.units(UnitTypeId.ZEALOT).take(wanted_army_size)
+        wanted_army_batch_size = 10
+        if self.units(UnitTypeId.ZEALOT).amount > wanted_army_batch_size:
+            this_army = self.units(UnitTypeId.ZEALOT)
+            self.armies.append(this_army)
 
             if self.gathering_completed:
-                await self.attack_to(self.attacking_army, self.enemy_start_locations[0])
+                for army in self.armies:
+                    await self.attack_to(army, self.enemy_start_locations[0])
             else:
-                await self.gather_army(self.attacking_army, self.enemy_start_locations[0].towards(self.game_info.map_center, 50))
+                await self.gather_army(this_army, self.enemy_start_locations[0].towards(self.game_info.map_center, 50))
