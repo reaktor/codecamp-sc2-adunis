@@ -102,6 +102,7 @@ class MyBot(sc2.BotAI):
     async def build_army(self):
         if self.units(NEXUS).amount < 2:
             pass
+
         for gateway in self.units(GATEWAY).ready.noqueue:
             if self.can_afford(ZEALOT):
                 await self.do(gateway.train(ZEALOT))
@@ -111,21 +112,31 @@ class MyBot(sc2.BotAI):
                 pass
 
             output = self.units(PYLON).ready.first
-            abilities = await self.get_available_abilities(warpgate)
-            # all the units have the same cooldown anyway so let's just look at ZEALOT
-            if AbilityId.WARPGATETRAIN_ZEALOT in abilities:
-                placement = await self.find_warp_pylon(AbilityId.WARPGATETRAIN_ZEALOT)
+            preferred = await self.select_unit_to_warp(warpgate)
+
+            if preferred:
+                placement = await self.find_warp_pylon(preferred["ability"])
                 if placement is None:
-                    #return ActionResult.CantFindPlacementLocation
-                    print("can't place")
                     break
-                await self.do(warpgate.warp_in(ZEALOT, placement))
+                await self.do(warpgate.warp_in(preferred["unit"], placement))
 
         nexus = self.units(NEXUS).first
         for gateway in self.units(GATEWAY):
             units_at_base = self.units(ZEALOT).closer_than(10, gateway)
             for unit in units_at_base:
                 await self.do(unit.move(self.staging_point))
+
+
+    async def select_unit_to_warp(self, warpgate):
+        prios = [
+            { "unit": STALKER, "ability": WARPGATETRAIN_STALKER },
+            { "unit": ZEALOT, "ability": WARPGATETRAIN_ZEALOT }
+        ]
+
+        abilities = await self.get_available_abilities(warpgate)
+        preferred = [x for x in prios if (x["ability"] in abilities)]
+        if len(preferred) > 0:
+            return preferred[0]
 
     async def find_warp_pylon(self, ability):
         for pylon in self.units(PYLON).ready:
