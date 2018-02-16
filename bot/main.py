@@ -25,6 +25,7 @@ class MyBot(sc2.BotAI):
         if self.nexus_count < 2:
             await self.build_expansion()
         await self.build_army()
+        await self.distribute_workers()
 
     async def build_probes(self):
         for nexus in self.units(UnitTypeId.NEXUS).ready.noqueue:
