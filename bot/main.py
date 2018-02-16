@@ -134,17 +134,20 @@ class MyBot(sc2.BotAI):
             await self.build(NEXUS, near=location)
 
     async def gather_army(self, army, point):
+        for unit in army:
+            await self.do(unit.move(point))
+
         spread_sum = 0
         for i, unit in enumerate(army):
             if i == 0:
                 continue
             spread_sum += unit.distance_to(army[i-1])
         self.army_spread = spread_sum / len(army)
+
         await self.chat_send(f'Gathering. Spread: {self.army_spread}')
+
         random_unit = random.choice(army)
-        random_unit_distance = random_unit.position.distance_to(point)
-        await self.chat_send(f'Army distance to target: {random_unit_distance}')
-        if self.army_spread < len(army) and random_unit_distance < len(army):
+        if self.army_spread < len(army) * 2 and random_unit.position.distance_to(point) < len(army) * 2:
             self.gathering_completed = True
 
     async def attack_to(self, army, point):
