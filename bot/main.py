@@ -34,7 +34,7 @@ class MyBot(sc2.BotAI):
             await self.build_probes()
         if self.supply_left <= 2 * self.production_building_count and not self.already_pending(PYLON):
             await self.build_pylons()
-        if self.nexus_count < 3:
+        if self.nexus_count < 2:
             await self.build_expansion()
         if not self.warpgate_started:
             await self.build_warpgate_tech()
@@ -171,7 +171,7 @@ class MyBot(sc2.BotAI):
             { "unit": ZEALOT, "ability": WARPGATETRAIN_ZEALOT }
         ] if not self.only_gassless_units else [
             { "unit": ZEALOT, "ability": WARPGATETRAIN_ZEALOT }
-        ] 
+        ]
 
         abilities = await self.get_available_abilities(warpgate)
         preferred = [x for x in prios if (x["ability"] in abilities)]
