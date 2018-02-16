@@ -117,7 +117,7 @@ class MyBot(sc2.BotAI):
         if self.units(ASSIMILATOR).amount < 2 and not self.already_pending(ASSIMILATOR) and self.can_afford(ASSIMILATOR):
             nexus = self.units(NEXUS).first
             await self.build_assimilator(nexus)
-        if self.units(GATEWAY).amount + self.units(WARPGATE).amount < 8 and not self.already_pending(GATEWAY) and not self.already_pending(WARPGATE):
+        if self.units(GATEWAY).amount + self.units(WARPGATE).amount < 8 and not self.already_pending(GATEWAY):
             await self.build_gateway()
         if not self.units(TWILIGHTCOUNCIL).exists and not self.already_pending(TWILIGHTCOUNCIL):
             await self.build_twilight_council()
