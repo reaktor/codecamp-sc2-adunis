@@ -38,7 +38,8 @@ class MyBot(sc2.BotAI):
         await self.build_army()
         await self.distribute_workers()
         await self.build_economy()
-        await self.attack_enemy()
+        if iteration % 30 == 0:
+            await self.attack_enemy()
 
     async def build_warpgate_tech(self):
         need_ccore = not self.units(CYBERNETICSCORE).ready.exists and not self.already_pending(CYBERNETICSCORE)
@@ -147,6 +148,7 @@ class MyBot(sc2.BotAI):
         await self.chat_send(f'Gathering. Spread: {self.army_spread}')
 
         random_unit = random.choice(army)
+        await self.chat_send(f'Gathering. Spread: {self.army_spread < len(army)* 2}, {random_unit.position.distance_to(point) < len(army) * 2}, {random_unit.position.distance_to(point)}')
         if self.army_spread < len(army) * 2 and random_unit.position.distance_to(point) < len(army) * 2:
             self.gathering_completed = True
 
@@ -160,6 +162,7 @@ class MyBot(sc2.BotAI):
         if self.units(UnitTypeId.ZEALOT).amount > wanted_army_size:
             if not self.attacking_army:
                 self.attacking_army = self.units(UnitTypeId.ZEALOT).take(wanted_army_size)
+
             if self.gathering_completed:
                 await self.attack_to(self.attacking_army, self.enemy_start_locations[0])
             else:
