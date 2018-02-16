@@ -13,6 +13,7 @@ class MyBot(sc2.BotAI):
 
     def __init__(self):
         self.warpgate_started = False
+        self.only_gassless_units = True
 
     @property
     def nexus_count(self):
@@ -35,12 +36,12 @@ class MyBot(sc2.BotAI):
             await self.build_pylons()
         if self.nexus_count < 3:
             await self.build_expansion()
-        if not self.units(CYBERNETICSCORE).ready.exists and not self.already_pending(CYBERNETICSCORE):
-          await self.build_warpgate_tech()
-
+        if not self.warpgate_started:
+            await self.build_warpgate_tech()
+        await self.warpgates()
+        await self.build_economy()
         await self.build_army()
         await self.distribute_workers()
-        await self.build_economy()
         await self.attack()
 
         if not self.units(FORGE).exists:
@@ -49,7 +50,7 @@ class MyBot(sc2.BotAI):
             await self.build_cannons()
 
     async def build_warpgate_tech(self):
-        ccore_reqs = self.units(PYLON).ready.exists and self.units(GATEWAY).ready.exists
+        ccore_reqs = self.units(PYLON).ready.exists and self.units(GATEWAY).ready.exists and not self.already_pending(CYBERNETICSCORE)
         if ccore_reqs and self.can_afford(CYBERNETICSCORE):
             nexus = self.units(NEXUS).first
             await self.build(CYBERNETICSCORE, nexus, max_distance=20)
@@ -60,6 +61,8 @@ class MyBot(sc2.BotAI):
             await self.do(c(RESEARCH_WARPGATE))
             self.warpgate_started = True
 
+
+    async def warpgates(self):
         for gateway in self.units(GATEWAY).ready:
             abilities = await self.get_available_abilities(gateway)
             if AbilityId.MORPH_WARPGATE in abilities and self.can_afford(AbilityId.MORPH_WARPGATE):
@@ -93,12 +96,33 @@ class MyBot(sc2.BotAI):
         if self.can_afford(GATEWAY):
             await self.build(GATEWAY, nexus, max_distance=50)
 
+    async def build_dark_shrine(self):
+        nexus = self.units(NEXUS).first
+        if self.can_afford(DARKSHRINE):
+            await self.build(DARKSHRINE, nexus, max_distance=50)
+            self.only_gassless_units = False
+        else:
+            self.only_gassless_units = True
+
+    async def build_twilight_council(self):
+        nexus = self.units(NEXUS).first
+        if self.can_afford(TWILIGHTCOUNCIL):
+            await self.build(TWILIGHTCOUNCIL, nexus, max_distance=50)
+            self.only_gassless_units = False
+        else:
+            self.only_gassless_units = True
+
+
     async def build_economy(self):
-        if not self.units(ASSIMILATOR).exists and not self.already_pending(ASSIMILATOR) and self.can_afford(ASSIMILATOR):
+        if self.units(ASSIMILATOR).amount < 2 and not self.already_pending(ASSIMILATOR) and self.can_afford(ASSIMILATOR):
             nexus = self.units(NEXUS).first
             await self.build_assimilator(nexus)
-        if self.units(GATEWAY).amount < 4 and not self.already_pending(GATEWAY):
+        if self.units(GATEWAY).amount + self.units(WARPGATE).amount < 8 and not self.already_pending(GATEWAY) and not self.already_pending(WARPGATE):
             await self.build_gateway()
+        if not self.units(TWILIGHTCOUNCIL).exists and not self.already_pending(TWILIGHTCOUNCIL):
+            await self.build_twilight_council()
+        if not self.units(DARKSHRINE).exists and not self.already_pending(DARKSHRINE):
+            await self.build_dark_shrine()
 
     async def build_assimilator(self, nexus):
         vgs = self.state.vespene_geyser.closer_than(20.0, nexus)
@@ -135,16 +159,19 @@ class MyBot(sc2.BotAI):
                 await self.do(warpgate.warp_in(preferred["unit"], placement))
 
         for b in self.units(GATEWAY) | self.units(WARPGATE):
-            units_at_base = self.units(ZEALOT).idle.closer_than(10, b) | self.units(STALKER).idle.closer_than(10, b)
+            units_at_base = self.units(ZEALOT).idle.closer_than(10, b) | self.units(STALKER).idle.closer_than(10, b) | self.units(DARKTEMPLAR).idle.closer_than(10, b)
             for unit in units_at_base:
                 await self.do(unit.move(self.staging_point))
 
 
     async def select_unit_to_warp(self, warpgate):
         prios = [
+            { "unit": DARKTEMPLAR, "ability": WARPGATETRAIN_DARKTEMPLAR },
             { "unit": STALKER, "ability": WARPGATETRAIN_STALKER },
             { "unit": ZEALOT, "ability": WARPGATETRAIN_ZEALOT }
-        ]
+        ] if not self.only_gassless_units else [
+            { "unit": ZEALOT, "ability": WARPGATETRAIN_ZEALOT }
+        ] 
 
         abilities = await self.get_available_abilities(warpgate)
         preferred = [x for x in prios if (x["ability"] in abilities)]
@@ -165,6 +192,8 @@ class MyBot(sc2.BotAI):
             await self.build(NEXUS, near=location)
 
     async def attack(self):
+        for unit self.units(DARKTEMPLAR):
+            await self.do(unit.attack(self.enemy_start_locations[0]))
         if self.units(ZEALOT).amount > 30:
-            for unit in self.units(ZEALOT) | self.units(STALKER):
+            for unit in self.units(ZEALOT) | self.units(STALKER) | self.units(DARKTEMPLAR):
                 await self.do(unit.attack(self.enemy_start_locations[0]))
