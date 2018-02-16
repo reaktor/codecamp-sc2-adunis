@@ -12,10 +12,7 @@ class MyBot(sc2.BotAI):
         NAME = json.load(f)["name"]
 
     def __init__(self):
-        self.army_spread = None
         self.warpgate_started = False
-        self.gathering_completed = False
-        self.armies = []
 
     @property
     def nexus_count(self):
@@ -24,6 +21,10 @@ class MyBot(sc2.BotAI):
     @property
     def production_building_count(self):
         return self.units(GATEWAY).amount + self.units(WARPGATE).amount
+
+    @property
+    def staging_point(self):
+        return self.units(NEXUS).first.position.towards(self.game_info.map_center, 50)
 
     async def on_step(self, iteration):
         if iteration == 0:
@@ -38,8 +39,6 @@ class MyBot(sc2.BotAI):
         await self.build_army()
         await self.distribute_workers()
         await self.build_economy()
-        if iteration % 30 == 0:
-            await self.attack_enemy()
 
     async def build_warpgate_tech(self):
         need_ccore = not self.units(CYBERNETICSCORE).ready.exists and not self.already_pending(CYBERNETICSCORE)
@@ -121,6 +120,12 @@ class MyBot(sc2.BotAI):
                     break
                 await self.do(warpgate.warp_in(ZEALOT, placement))
 
+        nexus = self.units(NEXUS).first
+        for gateway in self.units(GATEWAY):
+            units_at_base = self.units(ZEALOT).closer_than(10, gateway)
+            for unit in units_at_base:
+                await self.do(unit.move(self.staging_point))
+
     async def find_warp_pylon(self, ability):
         for pylon in self.units(PYLON).ready:
             placement = await self.find_placement(AbilityId.WARPGATETRAIN_ZEALOT, pylon.position.to2, placement_step=1)
@@ -134,35 +139,6 @@ class MyBot(sc2.BotAI):
             location = await self.get_next_expansion()
             await self.build(NEXUS, near=location)
 
-    async def gather_army(self, army, point):
+    async def gather_to(self, army, point):
         for unit in army:
             await self.do(unit.move(point))
-
-        spread_sum = 0
-        for i, unit in enumerate(army):
-            if i == 0:
-                continue
-            spread_sum += unit.distance_to(army[i-1])
-        self.army_spread = spread_sum / len(army)
-
-        await self.chat_send(f'Gathering. Spread: {self.army_spread}')
-
-        if self.army_spread < len(army) * 2:
-            self.gathering_completed = True
-
-    async def attack_to(self, army, point):
-        await self.chat_send(f'Attacking.')
-        for unit in army:
-            await self.do(unit.attack(point))
-
-    async def attack_enemy(self):
-        wanted_army_batch_size = 10
-        if self.units(UnitTypeId.ZEALOT).amount > wanted_army_batch_size:
-            this_army = self.units(UnitTypeId.ZEALOT)
-            self.armies.append(this_army)
-
-            if self.gathering_completed:
-                for army in self.armies:
-                    await self.attack_to(army, self.enemy_start_locations[0])
-            else:
-                await self.gather_army(this_army, self.enemy_start_locations[0].towards(self.game_info.map_center, 50))
