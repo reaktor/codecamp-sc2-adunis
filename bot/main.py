@@ -24,7 +24,7 @@ class MyBot(sc2.BotAI):
 
     @property
     def staging_point(self):
-        return self.units(NEXUS).first.position.towards(self.game_info.map_center, 10)
+        return self.units(NEXUS).first.position.towards(self.game_info.map_center, 8)
 
     @property
     def attack_staging_point(self):
