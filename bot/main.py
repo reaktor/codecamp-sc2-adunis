@@ -26,6 +26,10 @@ class MyBot(sc2.BotAI):
     def staging_point(self):
         return self.units(NEXUS).first.position.towards(self.game_info.map_center, 10)
 
+    @property
+    def attack_staging_point(self):
+        return self.enemy_start_locations[0].towardss(self.game_info.map_center, 30)
+
     async def on_step(self, iteration):
         if iteration == 0:
             await self.chat_send(f"Name: {self.NAME}")
