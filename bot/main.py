@@ -1,8 +1,10 @@
 import json
+import random
 from pathlib import Path
 
 import sc2
 from sc2.constants import *
+
 
 
 class MyBot(sc2.BotAI):
@@ -10,9 +12,13 @@ class MyBot(sc2.BotAI):
         NAME = json.load(f)["name"]
 
     def __init__(self):
-        self.army_spread = 4
+        self.army_spread = None
         self.attacking_army = None
+<<<<<<< HEAD
         self.warpgate_started = False
+=======
+        self.gathering_completed = False
+>>>>>>> Separate gathering logic
 
     @property
     def nexus_count(self):
@@ -106,22 +112,31 @@ class MyBot(sc2.BotAI):
             location = await self.get_next_expansion()
             await self.build(NEXUS, near=location)
 
+    async def gather_army(self, army, point):
+        spread_sum = 0
+        for i, unit in enumerate(army):
+            if i == 0:
+                continue
+            spread_sum += unit.distance_to(army[i-1])
+        self.army_spread = spread_sum / len(army)
+        await self.chat_send(f'Gathering. Spread: {self.army_spread}')
+        random_unit = random.choice(army)
+        random_unit_distance = random_unit.position.distance_to(point)
+        await self.chat_send(f'Army distance to target: {random_unit_distance}')
+        if self.army_spread < len(army) and random_unit_distance < len(army):
+            self.gathering_completed = True
+
+    async def attack_to(self, army, point):
+        await self.chat_send(f'Attacking.')
+        for unit in army:
+            await self.do(unit.attack(point))
+
     async def attack_enemy(self):
-        wanted_army_size = 30
+        wanted_army_size = 10
         if self.units(UnitTypeId.ZEALOT).amount > wanted_army_size:
             if not self.attacking_army:
                 self.attacking_army = self.units(UnitTypeId.ZEALOT).take(wanted_army_size)
-            if self.army_spread < 30:
-                await self.chat_send(f'Attacking. Army spread {self.army_spread}')
-                for zealot in self.attacking_army:
-                    await self.do(zealot.attack(self.enemy_start_locations[0]))
-                self.attacking_army = None
+            if self.gathering_completed:
+                await self.attack_to(self.attacking_army, self.enemy_start_locations[0])
             else:
-                spread_sum = 0
-                for i, zealot in enumerate(self.attacking_army):
-                    if i == 0:
-                        continue
-                    spread_sum += zealot.distance_to(self.attacking_army[i-1])
-                self.army_spread = spread_sum / wanted_army_size
-                await self.do(zealot.move(self.enemy_start_locations[0].towards(self.game_info.map_center, 50)))
-
+                await self.gather_army(self.attacking_army, self.enemy_start_locations[0].towards(self.game_info.map_center, 50))
