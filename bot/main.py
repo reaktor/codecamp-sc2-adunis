@@ -24,7 +24,7 @@ class MyBot(sc2.BotAI):
 
     @property
     def staging_point(self):
-        return self.units(NEXUS).first.position.towards(self.game_info.map_center, 8)
+        return self.units(NEXUS).first.position.towards(self.game_info.map_center, 20)
 
     @property
     def attack_staging_point(self):
@@ -39,7 +39,7 @@ class MyBot(sc2.BotAI):
             await self.build_pylons()
         if self.nexus_count < 2:
             await self.build_expansion()
-        if not self.units(CYBERNETICSCORE).ready.exists and not self.already_pending(CYBERNETICSCORE)
+        if not self.units(CYBERNETICSCORE).ready.exists and not self.already_pending(CYBERNETICSCORE):
           await self.build_warpgate_tech()
 
         await self.build_army()
