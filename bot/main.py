@@ -26,6 +26,7 @@ class MyBot(sc2.BotAI):
             await self.build_expansion()
         await self.build_army()
         await self.distribute_workers()
+        await self.attack_enemy()
 
     async def build_probes(self):
         for nexus in self.units(UnitTypeId.NEXUS).ready.noqueue:
@@ -53,3 +54,9 @@ class MyBot(sc2.BotAI):
         if self.can_afford(NEXUS):
             location = await self.get_next_expansion()
             await self.build(NEXUS, near=location)
+
+    async def attack_enemy(self):
+        wanted_army_size = 30
+        if self.units(UnitTypeId.ZEALOT).amount > wanted_army_size:
+            for zealot in self.units(UnitTypeId.ZEALOT):
+                await self.do(zealot.attack(self.enemy_start_locations[0]))
