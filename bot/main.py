@@ -68,7 +68,7 @@ class MyBot(sc2.BotAI):
             if not self.attacking_army:
                 self.attacking_army = self.units(UnitTypeId.ZEALOT).take(wanted_army_size)
             if self.army_spread < 30:
-                await self.chat_send('Attacking.')
+                await self.chat_send(f'Attacking. Army spread {self.army_spread}')
                 for zealot in self.attacking_army:
                     await self.do(zealot.attack(self.enemy_start_locations[0]))
                 self.attacking_army = None
@@ -79,5 +79,5 @@ class MyBot(sc2.BotAI):
                         continue
                     spread_sum += zealot.distance_to(self.attacking_army[i-1])
                 self.army_spread = spread_sum / wanted_army_size
-                await self.do(zealot.move(self.enemy_start_locations[0].towards(self.game_info.map_center, 20)))
+                await self.do(zealot.move(self.enemy_start_locations[0].towards(self.game_info.map_center, 50)))
 
