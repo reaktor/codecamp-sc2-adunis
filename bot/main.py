@@ -28,7 +28,7 @@ class MyBot(sc2.BotAI):
 
     @property
     def attack_staging_point(self):
-        return self.enemy_start_locations[0].towardss(self.game_info.map_center, 30)
+        return self.enemy_start_locations[0].towards(self.game_info.map_center, 30)
 
     async def on_step(self, iteration):
         if iteration == 0:
