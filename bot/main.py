@@ -24,8 +24,7 @@ class MyBot(sc2.BotAI):
 
     @property
     def staging_point(self):
-        nexus = self.units(NEXUS).first
-        return self.units(NEXUS).first.position.towards(nexus, 15)
+        return self.units(NEXUS).first.position.towards(self.game_info.map_center, 15)
 
     async def on_step(self, iteration):
         if iteration == 0:
