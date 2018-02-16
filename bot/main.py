@@ -53,7 +53,7 @@ class MyBot(sc2.BotAI):
             await self.chat_send('gg no re')
     async def build_warpgate_tech(self):
         ccore_reqs = self.units(PYLON).ready.exists and self.units(GATEWAY).ready.exists and not self.already_pending(CYBERNETICSCORE)
-        if ccore_reqs and self.can_afford(CYBERNETICSCORE):
+        if ccore_reqs and not self.units(CYBERNETICSCORE).exists and self.can_afford(CYBERNETICSCORE):
             nexus = self.units(NEXUS).first
             await self.build(CYBERNETICSCORE, nexus, max_distance=20)
 
