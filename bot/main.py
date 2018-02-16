@@ -154,4 +154,4 @@ class MyBot(sc2.BotAI):
     async def attack(self):
         if self.units(ZEALOT).amount > 30:
             for unit in self.units(ZEALOT) | self.units(STALKER):
-                await self.do(unit.move(self.enemy_start_locations[0]))
+                await self.do(unit.attack(self.enemy_start_locations[0]))
