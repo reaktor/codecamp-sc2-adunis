@@ -160,7 +160,7 @@ class MyBot(sc2.BotAI):
                 return placement
 
     async def build_expansion(self):
-        if self.can_afford(NEXUS):
+        if self.can_afford(NEXUS) and not self.already_pending(NEXUS):
             location = await self.get_next_expansion()
             await self.build(NEXUS, near=location)
 
