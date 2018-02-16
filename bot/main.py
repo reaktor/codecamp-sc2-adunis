@@ -39,16 +39,17 @@ class MyBot(sc2.BotAI):
             await self.build_pylons()
         if self.nexus_count < 2:
             await self.build_expansion()
-        await self.build_warpgate_tech()
+        if not self.units(CYBERNETICSCORE).ready.exists and not self.already_pending(CYBERNETICSCORE)
+          await self.build_warpgate_tech()
+
         await self.build_army()
         await self.distribute_workers()
         await self.build_economy()
         await self.attack()
 
     async def build_warpgate_tech(self):
-        need_ccore = not self.units(CYBERNETICSCORE).ready.exists and not self.already_pending(CYBERNETICSCORE)
         ccore_reqs = self.units(PYLON).ready.exists and self.units(GATEWAY).ready.exists
-        if need_ccore and ccore_reqs and self.can_afford(CYBERNETICSCORE):
+        if ccore_reqs and self.can_afford(CYBERNETICSCORE):
             nexus = self.units(NEXUS).first
             await self.build(CYBERNETICSCORE, nexus, max_distance=20)
 
@@ -125,7 +126,7 @@ class MyBot(sc2.BotAI):
                 await self.do(warpgate.warp_in(preferred["unit"], placement))
 
         for b in self.units(GATEWAY) | self.units(WARPGATE):
-            units_at_base = self.units(ZEALOT).idle.closer_than(10, b)  | self.units(STALKER).idle.closer_than(10, b)
+            units_at_base = self.units(ZEALOT).idle.closer_than(10, b) | self.units(STALKER).idle.closer_than(10, b)
             for unit in units_at_base:
                 await self.do(unit.move(self.staging_point))
 
