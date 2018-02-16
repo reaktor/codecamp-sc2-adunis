@@ -151,11 +151,7 @@ class MyBot(sc2.BotAI):
             location = await self.get_next_expansion()
             await self.build(NEXUS, near=location)
 
-    async def gather_to(self, army, point):
-        for unit in army:
-            await self.do(unit.move(point))
-
     async def attack(self):
         if self.units(ZEALOT).amount > 30:
-            for unit in self.units(ZEALOT):
+            for unit in self.units(ZEALOT) | self.units(STALKER):
                 await self.do(unit.move(self.enemy_start_locations[0]))
