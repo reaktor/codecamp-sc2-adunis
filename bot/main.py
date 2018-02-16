@@ -43,7 +43,7 @@ class MyBot(sc2.BotAI):
             await self.build(GATEWAY, nexus, max_distance=50)
 
     async def build_economy(self):
-        if self.units(GATEWAY).amount < 1 and not self.already_pending(GATEWAY):
+        if self.units(GATEWAY).amount < 4 and not self.already_pending(GATEWAY):
             await self.build_gateway()
 
     async def build_army(self):
